@@ -8,12 +8,14 @@ import co.istad.productapisimpledemo.repository.ProfileRepository;
 import co.istad.productapisimpledemo.repository.UserRepository;
 import co.istad.productapisimpledemo.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final UserRepository userRepository;
@@ -21,7 +23,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse createUser(CreateUserRequest request) {
-
+        log.info("Create user request: {}", request);
         var user = userMapper.toUser(request);
         var profile = new Profile();
 
