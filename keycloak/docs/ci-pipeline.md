@@ -361,3 +361,44 @@ So instead of jumping straight to a large production pipeline, I'd suggest we bu
 6. **CD:** Push to Docker Hub and deploy via SSH with Docker Compose
 
 By the end, you'll understand not just *how* the pipeline works, but *why* each stage exists and what problem it solves. That foundation makes it much easier to troubleshoot and adapt the pipeline for future projects.
+
+*** 
+## Docker Snippet Github actions
+```yaml
+      #####################################
+      # Docker with Docker Hub 
+      #####################################
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        if: false 
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract Docker Metadata
+        id: meta
+        if: false 
+        uses: docker/metadata-action@v5
+        with:
+          images: yourdockerhubusername/product-api
+
+      - name: Build Docker Image
+        uses: docker/build-push-action@v6
+        if: false 
+        with:
+          context: .
+          push: false
+          tags: |
+            ${{ steps.meta.outputs.tags }}
+
+      - name: Push Docker Image
+        uses: docker/build-push-action@v6
+        if: false 
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.tags }}
+
+```
