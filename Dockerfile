@@ -1,5 +1,5 @@
 # ---------- Build Stage ----------
-FROM gradle:9.0.0-jdk25 AS builder
+FROM gradle:jdk25 AS builder
 WORKDIR /app
 # Copy Gradle files first for better layer caching
 COPY build.gradle settings.gradle ./
@@ -9,8 +9,9 @@ COPY gradlew ./
 RUN ./gradlew dependencies --no-daemon || true
 # Copy source code
 COPY src src
+COPY config config
 # Build application (skip tests)
-RUN ./gradlew clean build -x test --no-daemon
+RUN ./gradlew  build -x test --no-daemon
 # ---------- Runtime Stage ----------
 FROM eclipse-temurin:25-jre
 WORKDIR /app
