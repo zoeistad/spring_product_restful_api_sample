@@ -1,0 +1,57 @@
+name: PR validation pipeline
+
+# condition
+on:
+#  push:
+#    branches:
+#      - 'feature/**'
+#      - 'fix/**'
+  pull_request:
+    branches:
+      - main
+
+
+# actual jobs
+jobs:
+  build-and-analyze:
+    name: Build, Tests, and Sonarqube Analysis
+    runs-on: ubuntu-latest
+    environment: SONARQUBE
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+            fetch-depth: 0 # Shallow clone should be disabled for better code analysis in sonarqube
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+      - name: Cache Gradle Packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Cache SonarQube Packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      - name: Grant Execute Permission for Gradle
+        run: chmod +x ./gradlew
+      - name: Create .env from Single secret
+        env:
+            ENV_CONTENT: ${{ secrets.ENV_FILE }}
+        run: |
+            echo "$ENV_CONTENT" > .env
+      - name: Build and Run Sonar Analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: |
+          # rm -rf ~/.gradle/caches/
+          ./gradlew build sonar --info --stacktrace # --refresh-dependencies

@@ -1,0 +1,98 @@
+name: Feature Branch CI
+
+# We only need to triggger this when the code is pushed to the features branch
+
+on:
+  push:
+    branches:
+      - "feature/**"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # Checkout source
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Install Java
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: gradle
+
+      # Extra Gradle Cache
+      - name: Cache Gradle Packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*','**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      # Make Gradle executable
+      - name: Grant Execute Permission
+        run: chmod +x gradlew
+
+      # Compile only
+      - name: Compile
+        run: ./gradlew compileJava
+
+      # Unit Tests
+      - name: Run Unit Tests
+        env:
+          # Match whatever environment variables your app/dotenv expects
+          SPRING_PROFILES_ACTIVE: test
+          DB_URL: jdbc:h2:mem:testdb
+          DB_USERNAME: sa
+          DB_PASSWORD: ""
+        run: ./gradlew test
+
+      # JaCoCo Coverage
+      - name: Generate JaCoCo Report
+        run: ./gradlew jacocoTestReport
+
+      # Checkstyle
+      - name: Run Checkstyle
+        run: ./gradlew checkstyleMain checkstyleTest
+        if: true
+          # Upload Checkstyle HTML Report
+      - name: Upload Checkstyle Report
+        uses: actions/upload-artifact@v4
+        if: always() # Upload even if Checkstyle failed
+        with:
+          name: checkstyle-report
+          path: build/reports/checkstyle/
+
+      # SpotBugs (Enabled)
+      - name: Run SpotBugs
+        run: ./gradlew spotbugsMain
+        if: true
+      # Build Jar
+      - name: Build Application
+        run: ./gradlew bootJar
+
+      # Upload Jar
+      # upload it to the workflow run. we can download it from artifact section of the workflow run.
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: spring-boot-jar
+          path: build/libs/*.jar
+
+      # Upload JaCoCo Report
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: build/reports/jacoco/

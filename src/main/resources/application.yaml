@@ -3,8 +3,7 @@ keycloak:
   server-url: https://ite-keycloak.anajak-khmer.site 
   realm: ecommerce-realm
   client-id: springboot-app
-  client-secret: wdKi8HYIeY3vJI2FvKTczu3oD3Vce4hV
-
+  client-secret: CF1I9QYQM3ZcJLRShA3DwkmYndrnvmGe
 file:
     client-path: /files
     storage-location: ite-images/
@@ -21,7 +20,7 @@ spring:
       multipart:
         max-file-size: 10MB # max allocation for single file size
         max-request-size: 30MB # ... for the whole request
-  #    security:
+#    security:
 #      user:
 #        name: developer
 #        password: pass12345

@@ -11,7 +11,7 @@ import java.util.Optional;
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Integer> {
     Boolean existsByName(String name);
-
+    List<Category> findByNameContainingIgnoreCase(String name);
     // pagination
     List<Category> findByParentCategoryIsNull(Sort sort );
 }
